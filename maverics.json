@@ -1,2 +1,48 @@
-version '1.0'
+version: '1.0'
+listenAddress: ":443"
+
+logger:
+  level: debug
+  logSessionID: true
+
+tls:
+  maverics:
+    certFile: tmp/certs/maverics.sonarsystems.co.crt
+    keyFile: tmp/certs/maverics.sonarsystems.co.key
+features:
+  authproviders: true
+
+authproviders:
+  - name: exampleOIDCProvider
+    type: oidc
+    wellKnownEndpoint: https://localhost/.well-known/openid-configuration
+    jwksEndpoint: https://localhost/jwks
+    authorizationEndpoint: https://localhost/auth
+    tokenEndpoint: https://localhost/token
+    userInfoEndpoint: https://localhost/userinfo
+    introspectEndpoint: https://localhost/introspect
+    issuer: https://localhost
+
+    clients:
+      - clientID: exampleID
+        clientSecret: exampleSecret
+        allowOfflineAccess:  true
+        redirects:
+          - https://localhost:8443/oidc
+        authentication:
+          isAuthenticatedSE:
+            funcName: clientIsAuthn
+            code: |+
+              import(
+                "maverics/auth"
+                "net/http"
+              )
+              func clientIsAuthn(
+                _ *auth.OIDCProvider,
+                _ http.ResponseWriter,
+                _ *http.Request,
+               ) bool {
+                 return true
+               }
+        publicClient: true
 
